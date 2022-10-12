@@ -20,14 +20,21 @@
           </el-dialog>
           
         <el-dialog title="已存在表的具体信息" :visible.sync="schemaNewCoulumn">
-          <el-form :model="ruleForm1"  ref="ruleForm1" v-for="(item,index) in ruleForm1.schemaAttributeName" :key="index" >
-           <el-form-item :rules="rules1"  :prop="`schemaAttributeName.${index}.name`" label="属性名称" :label-width="formLabelWidth">
-            <el-input v-model="item.name" autocomplete="off"></el-input>
+          <el-form :model="ruleForm2"  ref="ruleForm2">
+           <el-form-item  v-for="(item,index) in ruleForm2.schemaAttributeName" 
+                          :prop="'schemaAttributeName.' + index + '.value'"
+                          label="属性名称" 
+                          :label-width="formLabelWidth"
+                          :rules="{
+                                      required: true, message: '请输入表属性名', trigger: 'blur'
+                              }"
+          >
+            <el-input v-model="item.value" autocomplete="off"></el-input>
            </el-form-item>
           </el-form> 
           <div slot="footer" class="dialog-footer">
-             <el-button @click="schemaNewCoulumn = false;ruleForm1.schemaAttributeName=[];">取 消</el-button>
-              <el-button type="primary" @click="submitNewSchema(index)">确 定</el-button>
+             <el-button @click="schemaNewCoulumn = false;ruleForm2.schemaAttributeName=[];">取 消</el-button>
+              <el-button type="primary" @click="submitNewSchema('ruleForm2')">确 定</el-button>
            </div>
           </el-dialog>
 
@@ -64,7 +71,7 @@ export default {
       ruleForm1:{
         schemaName:'',
         schemaAttributeNum:'',
-        schemaAttributeName:[],
+        // schemaAttributeName:[],
       },
       formLabelWidth: '120px',
       rules:{
@@ -72,14 +79,12 @@ export default {
           {validator: validatePass,trigger:'blur'}
         ]
       },
-      // ruleForm2:{
-      //   schemaAttributeName:[{
-      //     name:'',
-      //   }]
-      // },
-     rules1:{
-             name:[{validator: validatePass1,trigger:'blur'}]
-           }
+      ruleForm2:{
+        schemaAttributeName:[]
+      },
+    //  rules1:{
+    //          name:[{validator: validatePass1,trigger:'blur'}]
+    //        }
     }
   },
   
@@ -104,9 +109,9 @@ methods:{
         if (valid) {
            alert('submit!');
           this.schemaNewVisible=false;
-          for(var i=0;i<this.ruleForm1.schemaAttributeNum;i++){
-            let obj={name:''};
-              this.ruleForm1.schemaAttributeName.push(obj);
+          for(let i=1;i<=this.ruleForm1.schemaAttributeNum;i++){
+            let obj={name:`input${i}`, value: ''};
+            this.ruleForm2.schemaAttributeName.push(obj);
           }
 
           this.schemaNewCoulumn=true;
@@ -116,21 +121,30 @@ methods:{
         }
       });
     },
-    submitNewSchema(index){
+    submitNewSchema(info){
+
+      this.$refs[info].validate((valid) => {
+          if (valid) {
+            alert('submit!');
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
  
-         this.$refs.ruleForm1.schemaAttributeName[index].validate((valid) => {
+    //      this.$refs.ruleForm1.schemaAttributeName[index].validate((valid) => {
       
-      if(this.flag){
-          console.log(this.ruleForm1.schemaAttributeName)
-          this.ruleForm1.schemaAttributeName=[];
-          this.schemaNewCoulumn=false;
-        } else {
-          console.log('error submit!!');
-          return false;
-        }
+    //   if(this.flag){
+    //       console.log(this.ruleForm1.schemaAttributeName)
+    //       this.ruleForm1.schemaAttributeName=[];
+    //       this.schemaNewCoulumn=false;
+    //     } else {
+    //       console.log('error submit!!');
+    //       return false;
+    //     }
       
     
-    })
+    // })
 
 }
 }

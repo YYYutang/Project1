@@ -1,18 +1,86 @@
 <template>
   <div id="dm_main">
       <el-button v-if="isshow1" id="uploadbutton" type="primary" @click="changeButton">文件上传</el-button>
-      <el-button  v-if="isshow2" id="schema1" type="primary">已存在表</el-button>
-      <el-button  v-if="isshow3" id="schema2" type="primary">新建表</el-button>
+      <el-button  v-if="isshow2" id="schema1" type="primary" @click="showSchemaHas">已存在表</el-button>
+      <el-button  v-if="isshow3" id="schema2" type="primary" @click="showSchemaNew">新建表</el-button>
+
+        <el-dialog title="已存在表的基本信息" :visible.sync="schemaNewVisible">
+          <el-form :model="ruleForm1" :rules="rules" ref="ruleForm1" >
+           <el-form-item label="新建表名称" :label-width="formLabelWidth" prop="schemaName">
+            <el-input v-model="ruleForm1.schemaName" autocomplete="off"></el-input>
+           </el-form-item>
+          <el-form-item label="新建表属性个数" :label-width="formLabelWidth">
+              <el-input-number v-model="ruleForm1.schemaAttributeNum" @change="handleChange" :min="1" :max="100" label="请输入新建表的属性个数"></el-input-number>
+          </el-form-item>
+          </el-form> 
+          <div slot="footer" class="dialog-footer">
+             <el-button @click="schemaNewVisible = false">取 消</el-button>
+              <el-button type="primary" @click="submitNewSchemaNum(ruleForm1)">确 定</el-button>
+           </div>
+          </el-dialog>
+          
+        <el-dialog title="已存在表的具体信息" :visible.sync="schemaNewCoulumn">
+          <el-form :model="ruleForm1" :rules="rules1" ref="ruleForm1" >
+           <el-form-item  v-for="(item,index) in ruleForm1.schemaAttributeNum" :key="index" :prop="`schemaAttributeName`+index" label="属性名称" :label-width="formLabelWidth">
+            <el-input v-model="ruleForm1.schemaAttributeName[index]" autocomplete="off"></el-input>
+           </el-form-item>
+          </el-form> 
+          <div slot="footer" class="dialog-footer">
+             <el-button @click="schemaNewCoulumn = false">取 消</el-button>
+              <el-button type="primary" @click="submitNewSchema(ruleForm1)">确 定</el-button>
+           </div>
+          </el-dialog>
+
   </div>
 </template>
 
 <script>
 export default {
   data(){
+    var validatePass = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请输入表名'));
+      }else {
+        callback();
+      }
+      }
+      var validatePass1=(rule,value,callback)=>{
+        if(value===''){
+          callback(new Error('请输入表属性名'));
+        }
+        else{
+          callback();
+        }
+      }
+    
     return{
       isshow1:true,
       isshow2:false,
       isshow3:false,
+      schemaHasVisible:false,
+      schemaNewVisible:false,
+      schemaNewCoulumn:false,
+      ruleForm1:{
+        schemaName:'',
+        schemaAttributeNum:'',
+        schemaAttributeName:[],
+      },
+      formLabelWidth: '120px',
+      rules:{
+        schemaName:[
+          {validator: validatePass,trigger:'blur'}
+        ]
+      },
+      // ruleForm2:{
+      //   schemaAttributeName:[{
+      //     name:'',
+      //   }]
+      // },
+     rules1:{
+           schemaAttributeName:[
+          {validator: validatePass1,trigger:'blur'}
+        ]
+            }
     }
   },
   
@@ -22,7 +90,40 @@ methods:{
       this.isshow2 = !this.isshow2;
       this.isshow3= !this.isshow3;
     },
+    showSchemaHas(){
+      this.schemaHasVisible=true;
+    },
+    showSchemaNew(){
+      this.schemaNewVisible=true;
+    },
+     handleChange(value) {
+        console.log(value);
+    },
+     submitNewSchemaNum(ruleForm1){
 
+        this.$refs.ruleForm1.validate((valid) => {
+        if (valid) {
+           alert('submit!');
+          this.schemaNewVisible=false;
+          this.schemaNewCoulumn=true;
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    submitNewSchema(ruleForm1){
+      this.$refs.ruleForm1.validate((valid) => {
+        if (valid) {
+           alert('submit!');
+          console.log(ruleForm1.schemaAttributeName)
+          this.schemaNewCoulumn=false;
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    }
 
 }
 }

@@ -22,11 +22,7 @@ const router = new VueRouter({
       name:'Home',
       component:Home,
       children:[
-        // {
-          // path:'/main',
-          // name:'Main',
-          // component:Main,
-          // children:[
+
            { path:'/dataManage',
             name:'DataManage',
             component:DataManage,
@@ -45,8 +41,7 @@ const router = new VueRouter({
             name:'VanishCom',
             component:VanishCom,
           }
-          // ]
-        // },
+
   
     ]
     },

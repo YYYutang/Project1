@@ -14,7 +14,7 @@
           </el-form-item>
           </el-form> 
           <div slot="footer" class="dialog-footer">
-             <el-button @click="schemaNewVisible = false;ruleForm1.schemaAttributeName=[];">取 消</el-button>
+             <el-button @click="schemaNewVisible = false;ruleForm2.schemaAttributeName=[];">取 消</el-button>
               <el-button type="primary" @click="submitNewSchemaNum(ruleForm1)">确 定</el-button>
            </div>
           </el-dialog>
@@ -128,6 +128,7 @@ methods:{
             alert('submit!');
           } else {
             console.log('error submit!!');
+            this.ruleForm2.schemaAttributeName=[];
             return false;
           }
         });

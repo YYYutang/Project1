@@ -14,20 +14,20 @@
           </el-form-item>
           </el-form> 
           <div slot="footer" class="dialog-footer">
-             <el-button @click="schemaNewVisible = false">取 消</el-button>
+             <el-button @click="schemaNewVisible = false;ruleForm1.schemaAttributeName=[];">取 消</el-button>
               <el-button type="primary" @click="submitNewSchemaNum(ruleForm1)">确 定</el-button>
            </div>
           </el-dialog>
           
         <el-dialog title="已存在表的具体信息" :visible.sync="schemaNewCoulumn">
-          <el-form :model="ruleForm1" :rules="rules1" ref="ruleForm1" >
-           <el-form-item  v-for="(item,index) in ruleForm1.schemaAttributeNum" :key="index" :prop="`schemaAttributeName`+index" label="属性名称" :label-width="formLabelWidth">
-            <el-input v-model="ruleForm1.schemaAttributeName[index]" autocomplete="off"></el-input>
+          <el-form :model="ruleForm1"  ref="ruleForm1" v-for="(item,index) in ruleForm1.schemaAttributeName" :key="index" >
+           <el-form-item :rules="rules1"  :prop="`schemaAttributeName.${index}.name`" label="属性名称" :label-width="formLabelWidth">
+            <el-input v-model="item.name" autocomplete="off"></el-input>
            </el-form-item>
           </el-form> 
           <div slot="footer" class="dialog-footer">
-             <el-button @click="schemaNewCoulumn = false">取 消</el-button>
-              <el-button type="primary" @click="submitNewSchema(ruleForm1)">确 定</el-button>
+             <el-button @click="schemaNewCoulumn = false;ruleForm1.schemaAttributeName=[];">取 消</el-button>
+              <el-button type="primary" @click="submitNewSchema(index)">确 定</el-button>
            </div>
           </el-dialog>
 
@@ -60,6 +60,7 @@ export default {
       schemaHasVisible:false,
       schemaNewVisible:false,
       schemaNewCoulumn:false,
+      flag:1,
       ruleForm1:{
         schemaName:'',
         schemaAttributeNum:'',
@@ -77,10 +78,8 @@ export default {
       //   }]
       // },
      rules1:{
-           schemaAttributeName:[
-          {validator: validatePass1,trigger:'blur'}
-        ]
-            }
+             name:[{validator: validatePass1,trigger:'blur'}]
+           }
     }
   },
   
@@ -105,6 +104,11 @@ methods:{
         if (valid) {
            alert('submit!');
           this.schemaNewVisible=false;
+          for(var i=0;i<this.ruleForm1.schemaAttributeNum;i++){
+            let obj={name:''};
+              this.ruleForm1.schemaAttributeName.push(obj);
+          }
+
           this.schemaNewCoulumn=true;
         } else {
           console.log('error submit!!');
@@ -112,19 +116,23 @@ methods:{
         }
       });
     },
-    submitNewSchema(ruleForm1){
-      this.$refs.ruleForm1.validate((valid) => {
-        if (valid) {
-           alert('submit!');
-          console.log(ruleForm1.schemaAttributeName)
+    submitNewSchema(index){
+ 
+         this.$refs.ruleForm1.schemaAttributeName[index].validate((valid) => {
+      
+      if(this.flag){
+          console.log(this.ruleForm1.schemaAttributeName)
+          this.ruleForm1.schemaAttributeName=[];
           this.schemaNewCoulumn=false;
         } else {
           console.log('error submit!!');
           return false;
         }
-      });
-    }
+      
+    
+    })
 
+}
 }
 }
 

@@ -102,7 +102,7 @@ name: 'Home',
           });
         });
       }
-    
+
     },
     returnHome(){
       this.$router.push('/home')
@@ -111,12 +111,16 @@ name: 'Home',
      handleSelect(key,keyPath){
           console.log(key,keyPath)
       }
-    
+
   },
 }
 </script>
 
 <style>
+*{
+   /*解决主页边框问题*/
+  margin: 0; 
+}
 .homeHeader{
     background:rgba(29, 110, 216, 0.738);
     display:flex;

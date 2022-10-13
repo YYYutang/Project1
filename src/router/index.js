@@ -4,7 +4,7 @@ import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import DataManage from '../views/DataManage.vue'
 import Characteristic from '../views/Characteristic.vue'
-import DataAnalysis from '../views/DataAnalysis.vue'
+import DataAnalysis from '../views/dataAnalysis/DataAnalysis.vue'
 import VanishCom from '../views/VanishCom.vue'
 Vue.use(VueRouter)
 
@@ -42,10 +42,10 @@ const router = new VueRouter({
             component:VanishCom,
           }
 
-  
+
     ]
     },
-  
+
   ]
 })
 

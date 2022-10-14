@@ -6,6 +6,7 @@ import vue2 from '@vitejs/plugin-vue2'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+
   plugins: [
     vue2(),
     legacy({
@@ -19,7 +20,11 @@ export default defineConfig({
     }
   },
   server: {
+<<<<<<< HEAD
 
+=======
+    // 代理地址
+>>>>>>> 3d8160e (表选择、列选择)
     proxy: {
       '/api': {
         target: 'http://10.16.65.170:8080',

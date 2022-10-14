@@ -3,12 +3,12 @@
       <h1>数据分析与数据可视化</h1>
 
 
-    <div style="margin-bottom: 20px">
+    <div style="margin: 10px">
       <span>第一步： </span>
-      <el-button @click="dialogVisible = true" style="margin: 10px">选择数据表</el-button>
+      <el-button type="success" @click="dialogVisible = true" style="margin: 10px">选择数据表</el-button>
     </div>
 
-<!--    图标展示-->
+<!--    图表展示-->
     <div>
       <el-card style="width: 100%">
         <span>图表展示</span>
@@ -26,6 +26,9 @@
         <el-form-item>
           <el-button type="primary" @click="search">搜索</el-button>
         </el-form-item>
+        <el-form-item>
+          <i class="el-icon-question">注意：先选择表后再选择对应的表特征列</i>
+        </el-form-item>
       </el-form>
 
       <el-row :gutter="40">
@@ -36,46 +39,50 @@
                 stripe
                 style="width: 100%">
               <el-table-column
-                  prop="date"
-                  label="日期"
+                  prop="tableId"
+                  label="tableId"
+                  width="80">
+              </el-table-column>
+              <el-table-column
+                  prop="tableName"
+                  label="表名"
                   width="120">
               </el-table-column>
               <el-table-column
-                  prop="name"
-                  label="姓名"
-                  width="120">
+                  prop="tableType"
+                  label="表类型">
               </el-table-column>
               <el-table-column
-                  prop="address"
-                  label="地址">
+                  prop="tableState"
+                  label="表状态">
               </el-table-column>
               <el-table-column label="操作" fixed="right">
                 <template slot-scope="scope">
                   <el-button
                       size="small"
                       type="primary" plain
-                      @click="handleTableCheck(scope.$index, scope.row)">选择</el-button>
+                      @click="handleTableCheck(scope.row)">选择</el-button>
                 </template>
               </el-table-column>
             </el-table>
           </div>
         </el-col>
         <el-col :span="12">
-          <div class="right" style=" width: 100%;  padding: 5px; box-shadow: 0px 0px 5px; ">
+          <el-card class="right" style=" width: 100%;  padding: 5px; ">
             <h3 style="margin-bottom: 10px">请选择特征</h3>
             <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
             <div style="margin: 15px 0;"></div>
-            <el-checkbox-group v-model="checkedCities" @change="handleCheckedCitiesChange">
-              <el-checkbox v-for="city in cities" :label="city" :key="city">{{city}}</el-checkbox>
+            <el-checkbox-group v-model="checkedColumns" @change="handleCheckedColumnsChange">
+              <el-checkbox v-for="col in columns" :label="col" :key="col.columnId">Id:{{col.columnId}}-列名:{{col.columnName}}</el-checkbox>
             </el-checkbox-group>
-          </div>
+          </el-card>
         </el-col>
       </el-row>
 
 
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+        <el-button type="primary" @click="getConData">确 定</el-button>
       </span>
     </el-dialog>
 
@@ -84,33 +91,18 @@
 
 <script>
 
-import {postRequest} from "../../utils/api";
+import {getRequest, postRequest} from "../../utils/api";
 
 export default {
   data(){
     return {
+      checkedTableName:'',
       checkAll: false,
-      checkedCities: ['重庆'],
-      cities: ['上海', '北京', '广州', '深圳','重庆'],
+      checkedColumns: [],
+      columns: [],
       isIndeterminate: true,
 
-      tableData: [{
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄'
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1519 弄'
-      }, {
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1516 弄'
-      }],
+      tableData: [],
       dialogVisible: false,
       requestParams:{
         tableName: '',
@@ -120,6 +112,13 @@ export default {
     }
   },
   methods:{
+    getDefaultTable(){
+      getRequest("/main/dataadmin/tablesche/querytable").then(res => {
+        console.log("无参查询 数据表")
+        // console.log(res)
+        this.tableData = res._message.data.records
+      })
+    },
     // 搜索函数
     search(){
       postRequest(this.requestParams.tableName).theh(res => {
@@ -127,23 +126,62 @@ export default {
       })
       alert("1111")
     },
-    handleTableCheck(a1, a2){
-      console.log('选择表格')
-      console.log(a1,a2);
+    handleTableCheck(row){
+      // console.log('选择表格')
+      // console.log(row)
+      // 选择表(表id)，去查询列信息
+      let id = row.tableId
+      this.checkedTableName = row.tableName
+      getRequest("/main/columns/query/"+id).then(res => {
+        console.log(res);
+        let cols = res._message.col_info
+        this.columns = cols
+
+      })
+
 
     },
 
     handleCheckAllChange(val) {
 
-      this.checkedCities = val ? this.cities : [];
+      this.checkedColumns = val ? this.columns : [];
       this.isIndeterminate = false;
     },
-    handleCheckedCitiesChange(value) {
+    handleCheckedColumnsChange(value) {
       let checkedCount = value.length;
-      this.checkAll = checkedCount === this.cities.length;
-      this.isIndeterminate = checkedCount > 0 && checkedCount < this.cities.length;
-      console.log(this.checkedCities)
+      this.checkAll = checkedCount === this.columns.length;
+      this.isIndeterminate = checkedCount > 0 && checkedCount < this.columns.length;
+      console.log(this.checkedColumns)
+    },
+    getConData(){
+      // 选择好表、特征列去查询数据
+      if (this.checkedTableName){
+        let params = {
+          tableName: this.checkedTableName,
+          colNames: []
+        }
+        for (let col of this.checkedColumns) {
+          params.colNames.push(col.columnName)
+        }
+
+        // console.log(params)
+        postRequest("/data/column/query", params).then(res => {
+          console.log("条件数据")
+          console.log(res)
+        })
+        this.dialogVisible = false
+
+      }else{
+        this.$message.error('错了哦，还未选择表！');
+      }
+
+
+
     }
+  },
+  created() {
+    this.getDefaultTable()
+
   }
 
 }

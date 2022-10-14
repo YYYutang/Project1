@@ -188,7 +188,8 @@ export default {
       oldUploadName:[],//旧的已上传的表名
       tableData: [],
       schemaHasName: "",
-      showSchema1:[]
+      showSchema1:[],
+      tableId:"",
       //  rules1:{
       //          name:[{validator: validatePass1,trigger:'blur'}]
       //        }
@@ -246,6 +247,7 @@ export default {
           
           postRequest('/main/dataadmin/tablesche/create/schema',param).then(res=>{
                 if(res){
+                this.tableId=res._message.tableId;
                   console.log(res.message);
                 }else{
                   console.log('失败');
@@ -269,16 +271,24 @@ export default {
         if (valid) {
           alert("submit!");
           let columnName=[];
+          let params=[];
           for(let i=0;i<this.ruleForm2.schemaAttributeName.length;i++){
             columnName[i]=this.ruleForm2.schemaAttributeName[i].value;
+             const obj={
+               tableId:this.tableId,
+                columnName:columnName[i],
+                columnDescription:"string",
+                columnType:"cdate"
+             };
+
+             params.push(obj);
           }
-          const params={
-            tableId:this.ruleForm1.schemaName,
-            columnName:columnName
-          }
+          console.log(params)
+          
           postRequest('/main/columns/create/columns/',params).then(resp=>{
               if(resp){
                 console.log(resp.message);
+      
               }
           })
           this.schemaNewCoulumn = false;
@@ -300,30 +310,33 @@ export default {
         tableName:this.ruleForm1.schemaName,
         data_file:data_file
       }
-
+   console.log(params)
       const config = { headers: { "Content-Type": "multipart/form-data" } };
       this.$axios.post("/main/dataadmin/tablesche/upload/columns/", params).then((response) => {
-        this.$message.success(response.retCode);
+        this.$message.success(response);
       });
     },
     add(e){//添加已上传文件的表的表名
       this.oldUploadName.push(e.tableName);
     },
     submitOldSchema() {//上传已存在表的文件
-       const data_file = new FormData();
+      const data_file = new FormData();
       data_file.append("filename", this.file);
       const params={
         tableName:this.oldUploadName,
         data_file:data_file
       }
-
+   
       const config = { headers: { "Content-Type": "multipart/form-data" } };
       this.$axios.post("/main/dataadmin/tablesche/upload/columns/", params).then((response) => {
         this.$message.success(response.retCode);
       });
     },
     searchSchema(tablename) {//查询到的数据
-      postRequest("/main/dataadmin/tablesche/querytable", tablename).then((response) => {
+    const param={
+      tablename:tablename
+    }
+      postRequest("/main/dataadmin/tablesche/querytable", param).then((response) => {
         if(response){
           for(let i=0;i<response.length;i++){
           const obj={schName:response._message.data.records[i].tableName,

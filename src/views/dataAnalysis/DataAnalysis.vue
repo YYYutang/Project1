@@ -13,6 +13,23 @@
       <el-card style="width: 100%">
         <span>图表展示</span>
 
+          <!-- 动态展示表格 -->
+        <el-table style="width: 100%"
+                  border
+                  :data="tableConData">
+          <template v-for="item in ColumnsWithNull">
+            <el-table-column :prop="item.columnName"
+                             :label="item.columnName"
+                             :key="item.columnId"></el-table-column>
+          </template>
+
+<!--          <el-table-column label="缺失值情况" fixed="right">-->
+<!--            <template slot-scope="scope">-->
+<!--              {{scope.row}}-->
+<!--            </template>-->
+<!--          </el-table-column>-->
+        </el-table>
+        <div class="chart" ref="chart1"></div>
       </el-card>
     </div>
 
@@ -92,17 +109,21 @@
 <script>
 
 import {getRequest, postRequest} from "../../utils/api";
-
+import { Chart } from '@antv/g2';
 export default {
   data(){
     return {
+      chartInstance: null,
+
       checkedTableName:'',
       checkAll: false,
       checkedColumns: [],
+      ColumnsWithNull: [],
       columns: [],
       isIndeterminate: true,
 
       tableData: [],
+      tableConData: [],
       dialogVisible: false,
       requestParams:{
         tableName: '',
@@ -139,7 +160,6 @@ export default {
 
       })
 
-
     },
 
     handleCheckAllChange(val) {
@@ -165,23 +185,118 @@ export default {
         }
 
         // console.log(params)
-        postRequest("/data/column/query", params).then(res => {
+        postRequest("/data/hang/queryColnull", params).then(res => {
           console.log("条件数据")
           console.log(res)
+          this.tableConData = res._message.data
+          this.ColumnsWithNull = this.checkedColumns
+          this.ColumnsWithNull = [{columnName: 'missing'}, ...this.ColumnsWithNull]
+          console.log(this.tableConData)
+          console.log(this.ColumnsWithNull)
+
+          this.getChart()
+
         })
         this.dialogVisible = false
 
       }else{
         this.$message.error('错了哦，还未选择表！');
       }
+    },
+    getRowNull(){
+
+    },
+    getChart(){
+      // const data = [
+      //   { time: '9:00-10:00', value: 30 },
+      //   { time: '10:00-11:00', value: 90 },
+      //   { time: '11:00-12:00', value: 50 },
+      //   { time: '12:00-13:00', value: 30 },
+      //   { time: '13:00-14:00', value: 70 }
+      // ];
+      //
+      // const chart = new Chart({
+      //   container: this.$refs.chart1,
+      //   autoFit: true,
+      //   height: 500,
+      // });
+      // chart.data(data);
+      // chart.scale('value', {
+      //   alias: '销售额(万)',
+      //   nice: true,
+      // });
+      // chart.axis('time', {
+      //   tickLine: null
+      // });
+      //
+      // chart.tooltip({
+      //   showMarkers: false
+      // });
+      // chart.interaction('active-region');
+      //
+      // chart.interval().position('time*value')
+      //     .style('time', val => {
+      //       if (val === '13:00-14:00') {
+      //         return {
+      //           fillOpacity: 0.4,
+      //           lineWidth: 1,
+      //           stroke: '#636363',
+      //           lineDash: [3, 2]
+      //         }
+      //       }
+      //       return {
+      //         fillOpacity: 1,
+      //         lineWidth: 0,
+      //         stroke: '#636363',
+      //         lineDash: [3, 2]
+      //       };
+      //     });
+      //
+      // chart.render();
 
 
-
+      // this.chartInstance = this.$echarts.init(this.$refs.chart1)
+      // let option = {
+      //   tooltip: {
+      //     trigger: 'axis',
+      //     axisPointer: {
+      //       type: 'shadow'
+      //     }
+      //   },
+      //   grid: {
+      //     left: '3%',
+      //     right: '4%',
+      //     bottom: '3%',
+      //     containLabel: true
+      //   },
+      //   xAxis: [
+      //     {
+      //       type: 'category',
+      //       data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      //       axisTick: {
+      //         alignWithLabel: true
+      //       }
+      //     }
+      //   ],
+      //   yAxis: [
+      //     {
+      //       type: 'value'
+      //     }
+      //   ],
+      //   series: [
+      //     {
+      //       name: 'Direct',
+      //       type: 'bar',
+      //       barWidth: '60%',
+      //       data: [10, 52, 200, 334, 390, 330, 220]
+      //     }
+      //   ]
+      // };
+      // this.chartInstance.setOption(option)
     }
   },
   created() {
     this.getDefaultTable()
-
   }
 
 }

@@ -23,7 +23,7 @@ export default defineConfig({
     // 代理地址
     proxy: {
       '/api': {
-        target: 'http://10.16.65.170:8080',
+        target: 'http://10.16.11.244:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }

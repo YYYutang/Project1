@@ -18,7 +18,12 @@ import {deleteRequest} from "@/utils/api";
 Vue.prototype.$axios = axios;
 Vue.config.productionTip = false
 Vue.use(ElementUI)
+<<<<<<< HEAD
 ElementUI.Dialog.props.closeOnClickModal.default = false;
+=======
+
+
+>>>>>>> c3aee6620285c80bde9626c51042e9bb2965132d
 Vue.prototype.postRequest = postRequest
 Vue.prototype.putRequest = putRequest
 Vue.prototype.getRequest = getRequest

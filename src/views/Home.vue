@@ -119,7 +119,7 @@ name: 'Home',
 <style>
 *{
    /*解决主页边框问题*/
-  margin: 0; 
+  margin: 0;
 }
 .homeHeader{
     background:rgba(29, 110, 216, 0.738);

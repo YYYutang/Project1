@@ -3,6 +3,8 @@ import { Message } from 'element-ui'
 import router from '../router'
 
 
+axios.defaults.baseURL = '/api'
+
 // 请求拦截器
 axios.interceptors.request.use(config => {
     config.headers = { 'Content-Type':'application/json' }
@@ -52,10 +54,10 @@ axios.interceptors.response.use(success=>{
 })
 let base ='';
 export const postRequest= (url,params)=>{
-    
+
     return axios({
         method:'post',
-        url:`${base}${url}`,      
+        url:`${base}${url}`,
         data:params
     })
 }

@@ -14,6 +14,7 @@ Vue.prototype.$axios = axios;
 Vue.config.productionTip = false
 Vue.use(ElementUI)
 
+
 Vue.prototype.postRequest = postRequest
 Vue.prototype.putRequest = putRequest
 Vue.prototype.getRequest = getRequest

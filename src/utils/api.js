@@ -2,6 +2,7 @@ import axios from 'axios'
 import { Message } from 'element-ui'
 import router from '../router'
 
+axios.defaults.baseURL='api'
 
 // 请求拦截器
 axios.interceptors.request.use(config => {
@@ -41,13 +42,13 @@ axios.interceptors.response.use(success=>{
         Message.error({message:'尚未登陆，请登录'});
         router.replace('/');
     }
-    else{
-        if(error.response.data.message){
-            Message.error({message:error.response.data.message});
-        }else{
-            Message.error({message:'未知错误'})
-        }
-    }
+    // else{
+    //     if(error.response.data.message){
+    //         Message.error({message:error.response.data.message});
+    //     }else{
+    //         Message.error({message:'未知错误'})
+    //     }
+    // }
     return;
 })
 let base ='';

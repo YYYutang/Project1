@@ -12,24 +12,29 @@
     <div>
       <el-card style="width: 100%">
         <span>图表展示</span>
+        <el-row :gutter="50">
+          <el-col :span="10">
+            <!-- 动态展示表格 -->
+            <el-table style="width: 100%; margin: 10px"
+                      border
+                      :data="tableConData">
+              <template v-for="item in ColumnsWithNull">
+                <el-table-column :prop="item.columnName"
+                                 :label="item.columnName"
+                                 :key="item.columnId"></el-table-column>
+              </template>
+            </el-table>
+          </el-col>
 
-          <!-- 动态展示表格 -->
-        <el-table style="width: 100%"
-                  border
-                  :data="tableConData">
-          <template v-for="item in ColumnsWithNull">
-            <el-table-column :prop="item.columnName"
-                             :label="item.columnName"
-                             :key="item.columnId"></el-table-column>
-          </template>
+          <el-col :span="14">
+            <span>列缺失信息统计</span>
+            <div class="chart" ref="chart1" style="height: 300px; width: 80%"></div>
+            <div class="chart" ref="chart2" style="height: 300px; width: 50%"></div>
+          </el-col>
+        </el-row>
 
-<!--          <el-table-column label="缺失值情况" fixed="right">-->
-<!--            <template slot-scope="scope">-->
-<!--              {{scope.row}}-->
-<!--            </template>-->
-<!--          </el-table-column>-->
-        </el-table>
-        <div class="chart" ref="chart1"></div>
+
+
       </el-card>
     </div>
 
@@ -109,12 +114,14 @@
 <script>
 
 import {getRequest, postRequest} from "../../utils/api";
-import { Chart } from '@antv/g2';
+// import { Chart } from '@antv/g2';
 export default {
   data(){
     return {
       chartInstance: null,
 
+      columnsNull: null,
+      rowsNull: [],
       checkedTableName:'',
       checkAll: false,
       checkedColumns: [],
@@ -157,13 +164,10 @@ export default {
         console.log(res);
         let cols = res._message.col_info
         this.columns = cols
-
       })
-
     },
 
     handleCheckAllChange(val) {
-
       this.checkedColumns = val ? this.columns : [];
       this.isIndeterminate = false;
     },
@@ -172,6 +176,25 @@ export default {
       this.checkAll = checkedCount === this.columns.length;
       this.isIndeterminate = checkedCount > 0 && checkedCount < this.columns.length;
       console.log(this.checkedColumns)
+    },
+    getColumnsNull(param){
+      console.log(param)
+      // 查询每列有多少缺失值
+      postRequest("/data/column/querycolumnsnull", param).then(res => {
+        this.columnsNull = res._message.data[0]
+        // console.log("列缺失信息")
+        // console.log(this.columnsNull)
+        this.getChart()
+      })
+    },
+    getRowsNull(param){
+      // 查询每行有多少缺失值
+      postRequest("/data/hang/queryColnull", param).then(res => {
+        this.rowsNull = res._message.data
+        console.log(res)
+        this.getChart2()
+      })
+
     },
     getConData(){
       // 选择好表、特征列去查询数据
@@ -186,117 +209,195 @@ export default {
 
         // console.log(params)
         postRequest("/data/hang/queryColnull", params).then(res => {
-          console.log("条件数据")
-          console.log(res)
+          // console.log("条件数据")
+          // console.log(res)
           this.tableConData = res._message.data
           this.ColumnsWithNull = this.checkedColumns
+          // 多加表格第一列缺失列
           this.ColumnsWithNull = [{columnName: 'missing'}, ...this.ColumnsWithNull]
-          console.log(this.tableConData)
-          console.log(this.ColumnsWithNull)
-
-          this.getChart()
-
+          // console.log(this.tableConData)
+          // console.log(this.ColumnsWithNull)
         })
+        // 查询表的缺失值情况
+        this.getColumnsNull(params)
+        this.getRowsNull(params)
+
         this.dialogVisible = false
 
       }else{
         this.$message.error('错了哦，还未选择表！');
       }
     },
-    getRowNull(){
+
+    getChart(){
+      const data = [];
+
+      let colNull = this.columnsNull;
+      let dataNum = colNull.dataNum // 样本总数
+      delete colNull.dataNum
+
+      let keys = Object.keys(colNull)
+      let vals = Object.values(colNull)
+      for (let i=0; i<keys.length;i++)
+      {
+        data.push({
+          type: keys[i], value: vals[i], percent: Number( (vals[i]/dataNum).toFixed(2) )
+        })
+      }
+      data.sort((a, b) => a.value < b.value ? 1 : a.value > b.value ? -1 : 0)
+      console.log(data)
+      const chart = new this.$G2.Chart({
+        container: this.$refs.chart1,
+        autoFit: true,
+        height: 500,
+        padding: [50, 20, 50, 20],
+      });
+      chart.data(data);
+      chart.scale('value', {
+        alias: '缺失数量 ',
+      });
+
+      chart.axis('type', {
+        tickLine: {
+          alignTick: false,
+        },
+      });
+      chart.axis('value', false);
+
+      chart.tooltip({
+        showMarkers: false,
+      });
+      chart.interval().position('type*value').color('type');
+      chart.interaction('element-active');
+
+// 添加文本标注
+      data.forEach((item) => {
+        chart
+            .annotation()
+            .text({
+              position: [item.type, item.value],
+              content: item.value,
+              style: {
+                textAlign: 'center',
+              },
+              offsetY: -30,
+            })
+            .text({
+              position: [item.type, item.value],
+              content: (item.percent * 100).toFixed(0) + '%',
+              style: {
+                textAlign: 'center',
+              },
+              offsetY: -12,
+            });
+      });
+      chart.render();
+
 
     },
-    getChart(){
-      // const data = [
-      //   { time: '9:00-10:00', value: 30 },
-      //   { time: '10:00-11:00', value: 90 },
-      //   { time: '11:00-12:00', value: 50 },
-      //   { time: '12:00-13:00', value: 30 },
-      //   { time: '13:00-14:00', value: 70 }
-      // ];
-      //
-      // const chart = new Chart({
-      //   container: this.$refs.chart1,
-      //   autoFit: true,
-      //   height: 500,
-      // });
-      // chart.data(data);
-      // chart.scale('value', {
-      //   alias: '销售额(万)',
-      //   nice: true,
-      // });
-      // chart.axis('time', {
-      //   tickLine: null
-      // });
-      //
-      // chart.tooltip({
-      //   showMarkers: false
-      // });
-      // chart.interaction('active-region');
-      //
-      // chart.interval().position('time*value')
-      //     .style('time', val => {
-      //       if (val === '13:00-14:00') {
-      //         return {
-      //           fillOpacity: 0.4,
-      //           lineWidth: 1,
-      //           stroke: '#636363',
-      //           lineDash: [3, 2]
-      //         }
-      //       }
-      //       return {
-      //         fillOpacity: 1,
-      //         lineWidth: 0,
-      //         stroke: '#636363',
-      //         lineDash: [3, 2]
-      //       };
-      //     });
-      //
-      // chart.render();
+    getChart2(){
 
+      let rolnull = this.rowsNull
+      let toal = rolnull.length
+      let queshi = 0
+      let wanzhen=0
+      for (let item of rolnull) {
+        if (item.missing != 0){
+          wanzhen++
+        }
+      }
+      queshi = toal - wanzhen
+      let data = [];
+      data.push({item: '缺失样本数', count: queshi, percent: Number( (queshi/toal).toFixed(2) )})
+      data.push({item: '未缺失样本数', count: wanzhen, percent: Number( (wanzhen/toal).toFixed(2) )})
+      console.log(data)
 
-      // this.chartInstance = this.$echarts.init(this.$refs.chart1)
-      // let option = {
-      //   tooltip: {
-      //     trigger: 'axis',
-      //     axisPointer: {
-      //       type: 'shadow'
-      //     }
-      //   },
-      //   grid: {
-      //     left: '3%',
-      //     right: '4%',
-      //     bottom: '3%',
-      //     containLabel: true
-      //   },
-      //   xAxis: [
-      //     {
-      //       type: 'category',
-      //       data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      //       axisTick: {
-      //         alignWithLabel: true
-      //       }
-      //     }
-      //   ],
-      //   yAxis: [
-      //     {
-      //       type: 'value'
-      //     }
-      //   ],
-      //   series: [
-      //     {
-      //       name: 'Direct',
-      //       type: 'bar',
-      //       barWidth: '60%',
-      //       data: [10, 52, 200, 334, 390, 330, 220]
-      //     }
-      //   ]
-      // };
-      // this.chartInstance.setOption(option)
+      const chart = new this.$G2.Chart({
+        container: this.$refs.chart2,
+        autoFit: true,
+        height: 500,
+      });
+      chart.data(data);
+      chart.scale('percent', {
+        formatter: (val) => {
+          val = val * 100 + '%';
+          return val;
+        },
+      });
+      chart.coordinate('theta', {
+        radius: 0.75,
+        innerRadius: 0.6,
+      });
+      chart.tooltip({
+        showTitle: false,
+        showMarkers: false,
+        itemTpl: '<li class="g2-tooltip-list-item"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>',
+      });
+// 辅助文本
+      chart
+          .annotation()
+          .text({
+            position: ['50%', '50%'],
+            content: '样本总数',
+            style: {
+              fontSize: 14,
+              fill: '#8c8c8c',
+              textAlign: 'center',
+            },
+            offsetY: -20,
+          })
+          .text({
+            position: ['50%', '50%'],
+            content: String(toal),
+            style: {
+              fontSize: 20,
+              fill: '#8c8c8c',
+              textAlign: 'center',
+            },
+            offsetX: -10,
+            offsetY: 20,
+          })
+          .text({
+            position: ['50%', '50%'],
+            content: '个',
+            style: {
+              fontSize: 14,
+              fill: '#8c8c8c',
+              textAlign: 'center',
+            },
+            offsetY: 20,
+            offsetX: 20,
+          });
+      chart
+          .interval()
+          .adjust('stack')
+          .position('percent')
+          .color('item')
+          .label('percent', (percent) => {
+            return {
+              content: (data) => {
+                return `${data.item}: ${percent * 100}%`;
+              },
+            };
+          })
+          .tooltip('item*percent', (item, percent) => {
+            percent = percent * 100 + '%';
+            return {
+              name: item,
+              value: percent,
+            };
+          });
+
+      chart.interaction('element-active');
+
+      chart.render();
     }
   },
   created() {
     this.getDefaultTable()
+  },
+  mounted() {
+
   }
 
 }

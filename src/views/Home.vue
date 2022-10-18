@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <el-container >
+  <div style="height: 100%">
+    <el-container style="height: 930px">
   <el-header class="homeHeader">
       <div class="title" @click="returnHome" style="cursor:pointer" >xx系统</div>
         <div>
@@ -16,33 +16,35 @@
     </el-dropdown>
         </div>
       </el-header>
-      <el-container style="height: 500px; border: 1px solid #eee">
+      <el-container style="height: 100%; border: 1px solid #eee">
       <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+
        <el-row class="tac">
-  <el-col>
-    <el-menu
-    router
-      :default-active="$route.path"
-      class="el-menu-vertical-demo"
-       @select="handleSelect">
-    <el-menu-item index="/dataManage">
-        <i class="el-icon-menu"></i>
-        <span slot="title">数据管理</span>
-      </el-menu-item>
-      <el-menu-item index="/dataAnalysis">
-        <i class="el-icon-picture-outline-round"></i>
-        <span slot="title">数据分析与可视化</span>
-      </el-menu-item>
-      <el-menu-item index="/vanishCom">
-        <i class="el-icon-document"></i>
-        <span slot="title">缺失值补齐</span>
-      </el-menu-item>
-      <el-menu-item index="/characteristic">
-        <i class="el-icon-s-flag"></i>
-        <span slot="title">特征表征</span>
-      </el-menu-item>
-    </el-menu>
-  </el-col>
+        <el-col>
+          <el-menu
+          router
+            :default-active="$route.path"
+            class="el-menu-vertical-demo"
+             @select="handleSelect">
+          <el-menu-item index="/dataManage">
+              <i class="el-icon-menu"></i>
+              <span slot="title">数据管理</span>
+            </el-menu-item>
+            <el-menu-item index="/dataAnalysis">
+              <i class="el-icon-picture-outline-round"></i>
+              <span slot="title">数据分析与可视化</span>
+            </el-menu-item>
+            <el-menu-item index="/vanishCom">
+              <i class="el-icon-document"></i>
+              <span slot="title">缺失值补齐</span>
+            </el-menu-item>
+            <el-menu-item index="/characteristic">
+              <i class="el-icon-s-flag"></i>
+              <span slot="title">特征表征</span>
+            </el-menu-item>
+          </el-menu>
+        </el-col>
+
   </el-row>
       </el-aside>
 
@@ -121,6 +123,7 @@ name: 'Home',
    /*解决主页边框问题*/
   margin: 0;
 }
+
 .homeHeader{
     background:rgba(29, 110, 216, 0.738);
     display:flex;
@@ -137,6 +140,5 @@ name: 'Home',
   color: white;
    align-items: center;
 }
-
 
 </style>

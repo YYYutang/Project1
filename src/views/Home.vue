@@ -1,6 +1,6 @@
 <template>
   <div style="height: 100%">
-    <el-container style="height: 930px">
+    <el-container  style="height: 100%">
   <el-header class="homeHeader">
       <div class="title" @click="returnHome" style="cursor:pointer" >xx系统</div>
         <div>
@@ -122,6 +122,13 @@ name: 'Home',
 *{
    /*解决主页边框问题*/
   margin: 0;
+}
+html,body {
+  height: 100%;
+  /*解决双滚动条问题*/
+  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 .homeHeader{

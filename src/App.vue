@@ -8,5 +8,8 @@
 </template>
 
 <style>
-
+html,body,#app {
+  /*解决主页高度100%问题*/
+  height: 100%;
+}
 </style>

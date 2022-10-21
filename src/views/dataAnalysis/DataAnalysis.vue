@@ -21,7 +21,14 @@
               <template v-for="item in ColumnsWithNull">
                 <el-table-column :prop="item.columnName"
                                  :label="item.columnName"
-                                 :key="item.columnId"></el-table-column>
+                                 :key="item.columnId">
+                  <template slot-scope="scope">
+                    <el-button type="danger" circle size="mini" v-show="scope.row[item.columnName] == null">缺失</el-button>
+                    <span v-show="scope.row[item.columnName] != null">{{scope.row[item.columnName]}}</span>
+
+                  </template>
+
+                </el-table-column>
               </template>
             </el-table>
           </el-col>
@@ -32,7 +39,6 @@
             <div class="chart" ref="chart2" style="height: 300px; width: 50%"></div>
           </el-col>
         </el-row>
-
 
 
       </el-card>
@@ -58,9 +64,11 @@
           <div class="left" style=" width: 100%; ">
             <el-table
                 :data="tableData"
+                max-height="530"
                 stripe
                 style="width: 100%">
               <el-table-column
+                  fixed
                   prop="tableId"
                   label="tableId"
                   width="80">
@@ -118,7 +126,6 @@ import {getRequest, postRequest} from "../../utils/api";
 export default {
   data(){
     return {
-      chartInstance: null,
 
       columnsNull: null,
       rowsNull: [],
@@ -128,6 +135,9 @@ export default {
       ColumnsWithNull: [],
       columns: [],
       isIndeterminate: true,
+
+      chartInstance1: null,
+      chartInstance2: null,
 
       tableData: [],
       tableConData: [],
@@ -230,6 +240,9 @@ export default {
     },
 
     getChart(){
+      if (this.chartInstance1!=null) {
+        this.chartInstance1.destroy()
+      }
       const data = [];
 
       let colNull = this.columnsNull;
@@ -246,33 +259,33 @@ export default {
       }
       data.sort((a, b) => a.value < b.value ? 1 : a.value > b.value ? -1 : 0)
       console.log(data)
-      const chart = new this.$G2.Chart({
+      this.chartInstance1 = new this.$G2.Chart({
         container: this.$refs.chart1,
         autoFit: true,
         height: 500,
         padding: [50, 20, 50, 20],
       });
-      chart.data(data);
-      chart.scale('value', {
+      this.chartInstance1.data(data);
+      this.chartInstance1.scale('value', {
         alias: '缺失数量 ',
       });
 
-      chart.axis('type', {
+      this.chartInstance1.axis('type', {
         tickLine: {
           alignTick: false,
         },
       });
-      chart.axis('value', false);
+      this.chartInstance1.axis('value', false);
 
-      chart.tooltip({
+      this.chartInstance1.tooltip({
         showMarkers: false,
       });
-      chart.interval().position('type*value').color('type');
-      chart.interaction('element-active');
+      this.chartInstance1.interval().position('type*value').color('type');
+      this.chartInstance1.interaction('element-active');
 
 // 添加文本标注
       data.forEach((item) => {
-        chart
+        this.chartInstance1
             .annotation()
             .text({
               position: [item.type, item.value],
@@ -291,12 +304,14 @@ export default {
               offsetY: -12,
             });
       });
-      chart.render();
+      this.chartInstance1.render();
 
 
     },
     getChart2(){
-
+      if (this.chartInstance2 !=null) {
+        this.chartInstance2.destroy()
+      }
       let rolnull = this.rowsNull
       let toal = rolnull.length
       let queshi = 0
@@ -312,29 +327,29 @@ export default {
       data.push({item: '未缺失样本数', count: wanzhen, percent: Number( (wanzhen/toal).toFixed(2) )})
       console.log(data)
 
-      const chart = new this.$G2.Chart({
+      this.chartInstance2 = new this.$G2.Chart({
         container: this.$refs.chart2,
         autoFit: true,
         height: 500,
       });
-      chart.data(data);
-      chart.scale('percent', {
+      this.chartInstance2.data(data);
+      this.chartInstance2.scale('percent', {
         formatter: (val) => {
           val = val * 100 + '%';
           return val;
         },
       });
-      chart.coordinate('theta', {
+      this.chartInstance2.coordinate('theta', {
         radius: 0.75,
         innerRadius: 0.6,
       });
-      chart.tooltip({
+      this.chartInstance2.tooltip({
         showTitle: false,
         showMarkers: false,
         itemTpl: '<li class="g2-tooltip-list-item"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>',
       });
 // 辅助文本
-      chart
+      this.chartInstance2
           .annotation()
           .text({
             position: ['50%', '50%'],
@@ -368,7 +383,7 @@ export default {
             offsetY: 20,
             offsetX: 20,
           });
-      chart
+      this.chartInstance2
           .interval()
           .adjust('stack')
           .position('percent')
@@ -388,9 +403,12 @@ export default {
             };
           });
 
-      chart.interaction('element-active');
+      this.chartInstance2.interaction('element-active');
 
-      chart.render();
+      this.chartInstance2.render();
+    },
+    getOldNewData(){
+      // 这里获取新表和旧表的数据 也在确认中调用
     }
   },
   created() {

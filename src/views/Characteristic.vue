@@ -26,7 +26,7 @@
         </el-col>
 
         <el-col :span="12">
-          <span>补齐后的新表</span>
+          <span>表征后的新表</span>
           <el-table style="width: 100%; margin: 10px"
                     border
                     max-height="450"
@@ -122,7 +122,7 @@
             </el-select>
           </el-card>
           <el-card class="right" style=" width: 100%;  padding: 5px; margin-bottom: 5px">
-            <h3 style="margin-bottom: 10px">请输入补齐后新的表名</h3>
+            <h3 style="margin-bottom: 10px">请输入表征后新的表名</h3>
             <el-form :model="ruleForm" ref="ruleForm" label-width="100px" class="demo-ruleForm">
               <el-form-item
                   style="margin-left: -100px"

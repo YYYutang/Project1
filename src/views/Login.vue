@@ -43,16 +43,21 @@ export default {
     },
     methods:{
         submitlogin(){
-            this.$router.push({path:'/Home'})
+                 this.$router.push({path:'/Home'})
             this.$refs.loginForm.validate((valid) => {
           if (valid) {
               this.loading=true;
-            postRequest('/login',this.loginForm).then(resp=>{
+              const param={
+                  name:this.loginForm.id,
+                  password:this.loginForm.psw
+              }
+              console.log(param)
+            postRequest('/login',param).then(resp=>{
                if(resp){
                    this.loading=false;
                    const tokenStr =resp.obj.tokenHead+resp.obj.token;
                    window.sessionStorage.setItem('tokenStr',tokenStr);
-   
+                       this.$router.push({path:'/Home'})
                }
             })
           } else {

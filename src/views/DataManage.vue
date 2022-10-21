@@ -27,18 +27,19 @@
         <el-table-column prop="tableDesc" label="描述" width="260">
         </el-table-column>
         <el-table-column label="上传文件" width="100">
-          <template>
-            <el-upload
+          <template slot-scope="scope">
+
+                <el-upload
               class="upload-demo"
-              action="https://jsonplaceholder.typicode.com/posts/"
+              action="#"
               :on-preview="handlePreview"
+              :http-request="(data) => getFile(data, scope.row)"
               :on-remove="handleRemove"
               :before-remove="beforeRemove"
-              :http-request="getFile"
               multiple
-              :file-list="fileList"
             >
-              <el-button size="small" type="primary" @click="add(scope.row)">上传文件</el-button>
+
+                <el-button size="small" type="primary">上传文件</el-button>
             </el-upload>
           </template>
         </el-table-column>
@@ -50,7 +51,6 @@
             ruleForm2.schemaAttributeName = [];"
           >取 消</el-button
         >
-        <el-button type="primary" @click="submitSchemaHas()">确 定</el-button>
       </div>
     </el-dialog>
 
@@ -80,7 +80,7 @@
         <el-button
           @click="
             schemaNewVisible = false;
-            ruleForm2.schemaAttributeName = [];
+            ruleForm2.schemaAttribute = [];
           "
           >取 消</el-button
         >
@@ -91,10 +91,10 @@
     </el-dialog>
 
     <el-dialog title="新建表的具体信息" :visible.sync="schemaNewCoulumn">
-      <el-form :model="ruleForm2" ref="ruleForm2">
-        <el-form-item
-          v-for="(item, index) in ruleForm2.schemaAttributeName"
-          :prop="'schemaAttributeName.' + index + '.value'"
+      <el-form  :model="ruleForm2" ref="ruleForm2">
+        <div  v-for="(items, index) in ruleForm2.schemaAttribute" :key=index>
+        <el-form-item 
+          :prop="'schemaAttribute.' + index + '.nvalue'"
           label="属性名称"
           :label-width="formLabelWidth"
           :rules="{
@@ -103,14 +103,36 @@
             trigger: 'blur',
           }"
         >
-          <el-input v-model="item.value" autocomplete="off"></el-input>
+          <el-input v-model="items.nvalue" autocomplete="off"></el-input>
         </el-form-item>
+         <el-form-item
+          :key=index
+          :prop="'schemaAttribute.' + index + '.tvalue'"
+          label="属性类型"
+          :label-width="formLabelWidth"
+          :rules="{
+            required: true,
+            message: '请选择表属性类型',
+            trigger: 'blur',
+          }"
+        >
+        
+        <el-select  v-model="items.tvalue" placeholder="请选择" >
+          <el-option
+      v-for="item in options"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value">
+           </el-option>
+         </el-select>
+       </el-form-item>
+        </div>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button
           @click="
             schemaNewCoulumn = false;
-            ruleForm2.schemaAttributeName = [];
+            ruleForm2.schemaAttribute = [];
           "
           >取 消</el-button
         >
@@ -120,16 +142,15 @@
       </div>
     </el-dialog>
     <el-dialog title="新建表的上传" :visible.sync="schemaNewUpload">
-      <el-upload
-        class="upload-demo"
-        action="https://jsonplaceholder.typicode.com/posts/"
-        :on-preview="handlePreview"
-        :on-remove="handleRemove"
-        :before-remove="beforeRemove"
-        :http-request="getFile"
-        multiple
-        :file-list="fileList"
-      >
+     <el-upload
+              class="upload-demo"
+              action="#"
+              :on-preview="handlePreview"
+              :http-request="(data) => getFile1(data, ruleForm1.schemaName)"
+              :on-remove="handleRemove"
+              :before-remove="beforeRemove"
+              multiple
+            >
         <el-button size="small" type="primary">点击上传</el-button>
       </el-upload>
       <div slot="footer" class="dialog-footer">
@@ -137,17 +158,17 @@
           @click="
             schemaNewUpload = false;
             fileList = [];
-            ruleForm2.schemaAttributeName = [];
+            ruleForm2.schemaAttribute = [];
           "
           >取 消</el-button
         >
-        <el-button type="primary" @click="submitNewUpload">确 定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { createLogger } from 'vuex';
 import { getRequest, postRequest } from '../utils/api';
 export default {
   data() {
@@ -179,7 +200,7 @@ export default {
         schemaName: [{ validator: validatePass, trigger: "blur" }],
       },
       ruleForm2: {
-        schemaAttributeName: [],
+        schemaAttribute: [],
       },//提交表属性
       schemas:[],//搜索到的表
       schemasAll:[],//所有表信息
@@ -190,9 +211,21 @@ export default {
       schemaHasName: "",
       showSchema1:[],
       tableId:"",
-      //  rules1:{
-      //          name:[{validator: validatePass1,trigger:'blur'}]
-      //        }
+       options: [{
+          value: 'cdate',
+          label: 'cdate'
+        }, {
+          value: 'cdouble',
+          label: 'cdouble'
+        }, {
+          value: 'cinteger',
+          label: 'cinteger'
+        }, {
+          value: 'cstring',
+          label: 'cstring'
+        }, ],
+        value: '',
+        
     };
   },
 
@@ -213,6 +246,7 @@ export default {
           this.schemasAll.push(obj);
           }
           this.showSchema1=this.schemasAll;
+          console.log(this.schemasAll)
           this.schemasAll=[];
           console.log("查询到的数据",this.showSchema1);
         }
@@ -254,9 +288,10 @@ export default {
                 }
           })
           this.schemaNewVisible = false;
+          console.log(this.ruleForm2.schemaAttribute)
           for (let i = 1; i <= this.ruleForm1.schemaAttributeNum; i++) {
-            let obj = { name: `input${i}`, value: "" };
-            this.ruleForm2.schemaAttributeName.push(obj);
+            let obj = { name: `input${i}`, nvalue: "" ,tvalue:""};
+            this.ruleForm2.schemaAttribute.push(obj);
           }
 
           this.schemaNewCoulumn = true;
@@ -271,14 +306,16 @@ export default {
         if (valid) {
           alert("submit!");
           let columnName=[];
+          let columnType=[];
           let params=[];
-          for(let i=0;i<this.ruleForm2.schemaAttributeName.length;i++){
-            columnName[i]=this.ruleForm2.schemaAttributeName[i].value;
+          for(let i=0;i<this.ruleForm2.schemaAttribute.length;i++){
+            columnName[i]=this.ruleForm2.schemaAttribute[i].nvalue;
+            columnType[i]=this.ruleForm2.schemaAttribute[i].tvalue;
              const obj={
                tableId:this.tableId,
                 columnName:columnName[i],
                 columnDescription:"string",
-                columnType:"cdate"
+                columnType:columnType[i],
              };
 
              params.push(obj);
@@ -295,56 +332,72 @@ export default {
           this.schemaNewUpload = true;
         } else {
           console.log("error submit!!");
-          this.ruleForm2.schemaAttributeName = [];
+          this.ruleForm2.schemaAttribute = [];
           return false;
         }
       });
     },
-    getFile(item) {
-      this.file = item.file;
-    },
-    submitNewUpload() {
-      const data_file = new FormData();
-      data_file.append("filename", this.file);
+    getFile(data, row) {
+       const data_file = new FormData();
+      data_file.append("data_file", data.file);
+      data_file.append("tableName", row.schName);
       const params={
         tableName:this.ruleForm1.schemaName,
         data_file:data_file
       }
-   console.log(params)
-      const config = { headers: { "Content-Type": "multipart/form-data" } };
-      this.$axios.post("/main/dataadmin/tablesche/upload/columns/", params).then((response) => {
-        this.$message.success(response);
-      });
-    },
-    add(e){//添加已上传文件的表的表名
-      this.oldUploadName.push(e.tableName);
-    },
-    submitOldSchema() {//上传已存在表的文件
-      const data_file = new FormData();
-      data_file.append("filename", this.file);
-      const params={
-        tableName:this.oldUploadName,
-        data_file:data_file
+      const options = {
+        method: 'post',
+        data: data_file,
+        url: "/main/dataadmin/tablesche/upload/columns/",
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       }
-   
-      const config = { headers: { "Content-Type": "multipart/form-data" } };
-      this.$axios.post("/main/dataadmin/tablesche/upload/columns/", params).then((response) => {
-        this.$message.success(response.retCode);
-      });
+
+      this.$axios(options).then(res => {
+        console.log(res);
+      }).catch(err => {
+        console.log(err);
+      })
     },
-    searchSchema(tablename) {//查询到的数据
+     getFile1(data, schNewName) {
+       const data_file = new FormData();
+      data_file.append("data_file", data.file);
+      data_file.append("tableName", schNewName);
+
+      const options = {
+        method: 'post',
+        data: data_file,
+        url: "/main/dataadmin/tablesche/upload/columns/",
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+
+      this.$axios(options).then(res => {
+        console.log(res);
+      }).catch(err => {
+        console.log(err);
+      })
+    },
+   
+    searchSchema(tableName) {//查询到的数据
     const param={
-      tablename:tablename
+      tableName:tableName,
+      pageSize:2,
+      pageNo:1
     }
+      
       postRequest("/main/dataadmin/tablesche/querytable", param).then((response) => {
         if(response){
-          for(let i=0;i<response.length;i++){
-          const obj={schName:response._message.data.records[i].tableName,
-           tableDesc:response._message.data.records[i].tableDesc};
+          console.log(response)
+          for(let i=0;i<response._message.tableRecords.length;i++){
+          const obj={schName:response._message.tableRecords[i].tableName,
+           tableDesc:response._message.tableRecords[i].tableDesc};
           this.schemas.push(obj);
           }
           this.showSchema1=this.schemas;
-          console.log("查询到的数据",this.schemas);
+          this.schemas=[];
         }
         else{
           console.log(response)
